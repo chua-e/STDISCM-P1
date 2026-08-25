@@ -2,6 +2,7 @@ use std::io::BufRead;
 use std::{io};
 use std::fs::File;
 use std::path::Path;
+use STDISCM_P1::compute::find_prime;
 
 fn main() {
     let path = Path::new("config.txt");
@@ -46,4 +47,6 @@ fn main() {
     }
 
     println!("number of threads: {}\nnumber range: ({}, {})", n_threads, n_range[0], n_range[1]);
+
+    find_prime(&n_range[0], &n_range[1]);
 }
