@@ -55,7 +55,3 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
 
     return ranges;
 }
-
-// fn print_thread_outputs () {
-
-// }
