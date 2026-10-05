@@ -2,7 +2,7 @@ use std::io::BufRead;
 use std::{io, println};
 use std::fs::File;
 use std::path::Path;
-use STDISCM_P1::threads::variant_3;
+use STDISCM_P1::threads::{variant_1, variant_2, variant_3, variant_4};
 
 fn main() {
     let filename = "config.txt";
@@ -21,7 +21,7 @@ fn main() {
     let input = input.trim().parse().expect("Not integer");
 
     match input {
-        1 => println!("one"),
+        1 => variant_1(n_threads, n_range),
         2 => println!("two"),
         3 => variant_3(n_threads, n_range),
         4 => println!("four"),

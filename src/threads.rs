@@ -1,13 +1,37 @@
 use std::thread;
+use std::sync::mpsc;
 use crate::compute::find_prime;
 
 // print immediately, straight division
-pub fn variant_1() {
+pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
+    let range_list = allocate_ranges(n_thread, n_range);
+    let (tx, rx) = mpsc::channel();
 
+    for (i, (start, end)) in range_list.into_iter().enumerate() {
+        let thread_id = i + 1;
+        let tx = tx.clone();
+
+        thread::spawn(move || {
+           let primes = find_prime(&start, &end);
+            tx.send((thread_id, start, end, primes)).unwrap();
+        });
+    }
+    
+    drop(tx);
+
+    for (id, start, end, primes) in rx {
+        println!("Thread {}", id);
+        println!("Number range: ({}, {})", start, end);
+        
+        for (ix, (prime, timestamp)) in primes.iter().enumerate() {
+            println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, timestamp);
+        }
+        println!();
+    }
 }
 
 // print immediately, linear search
-pub fn variant_2 () {
+pub fn variant_2() {
 
 }
 
