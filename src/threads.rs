@@ -1,7 +1,18 @@
 use std::thread;
 use crate::compute::find_prime;
 
-pub fn make_threads (n_thread: u64, n_range: Vec<u64>) {
+// print immediately, straight division
+pub fn variant_1() {
+
+}
+
+// print immediately, linear search
+pub fn variant_2 () {
+
+}
+
+// wait to print, straight division
+pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
     let range_list = allocate_ranges(n_thread, n_range);
     let mut thread_list = Vec::new();
 
@@ -14,20 +25,31 @@ pub fn make_threads (n_thread: u64, n_range: Vec<u64>) {
 
         thread_list.push(t);
     }
-
+    
     for t in thread_list {
         if let Ok((id, start, end, primes)) = t.join() {
             println!("Thread {}", id);
             println!("Number range: ({}, {})", start, end);
             
-            for (ix, (prime, timestamp)) in primes.iter().enumerate() {
-                println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, timestamp);
+            for (ix, (prime, _)) in primes.iter().enumerate() {
+                println!("Prime {}: {}", ix + 1, prime);
             }
             println!();
         }
     }
 }
 
+// wait to print, linear search
+pub fn variant_4() {
+
+}
+
+
+/**
+ * Helper function that allocates numbers from the config range
+ * into equal segments per thread, only returns the first and
+ * last number of the segmented range
+ */
 fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
     if n_range.len() < 2 || n_thread == 0 {
         return Vec::new();

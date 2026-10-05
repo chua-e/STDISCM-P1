@@ -1,16 +1,38 @@
 use std::io::BufRead;
-use std::{io};
+use std::{io, println};
 use std::fs::File;
 use std::path::Path;
-use STDISCM_P1::thread::make_threads;
+use STDISCM_P1::threads::variant_3;
 
 fn main() {
     let filename = "config.txt";
     let (n_threads, n_range) = read_file(filename);
 
-    make_threads(n_threads, n_range);
+    let mut input = String::new(); 
+
+    println!("Choose the corresponding number for each variant:");
+    println!("1 - Print immediately + Straight division");
+    println!("2 - Print immediately + Linear search");
+    println!("3 - Wait until all threads finish before print + Straight division");
+    println!("4 - Wait until all threads finish before print + Linear search");
+
+    // print!("Input: ");
+    io::stdin().read_line(&mut input).expect("Input scheme variant needed");
+    let input = input.trim().parse().expect("Not integer");
+
+    match input {
+        1 => println!("one"),
+        2 => println!("two"),
+        3 => variant_3(n_threads, n_range),
+        4 => println!("four"),
+        _ => println!("Variant does not exist")
+    }
 }
 
+/**
+ * Reads the config file in the format where x is number of threads and
+ * y is the range of numbers for prime search
+ */
 fn read_file(filename: &str) -> (u64, Vec<u64>) {
     let mut x: u64 = 0;
     let mut y: Vec<u64> = Vec::new();
