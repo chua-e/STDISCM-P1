@@ -39,7 +39,7 @@ pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
     let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
     let next = Arc::new(AtomicU64::new(start));
 
-    for thread_id in 1..n_thread {
+    for thread_id in 1..=n_thread {
         let tx = tx.clone();
         let next = Arc::clone(&next);
 
@@ -90,8 +90,44 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
 }
 
 // wait to print, linear search
-pub fn variant_4() {
+pub fn variant_4(n_thread: u64, n_range: Vec<u64>) {
+    let (start, end) = (n_range[0], n_range[1]);
+    let next = Arc::new(AtomicU64::new(start));
 
+    let mut thread_list = Vec::new();
+
+    for thread_id in 1..=n_thread {
+        let next = Arc::clone(&next);
+
+        let t = thread::spawn (move || {
+            let mut primes: PrimeTime = Vec::new();
+
+            loop {
+                let n = next.fetch_add(1, Ordering::Relaxed);
+                if n > end { break; }
+
+                if is_prime(n) {
+                    primes.push((n, Utc::now()));
+                }
+            }
+
+            (thread_id, primes)
+        });
+
+        thread_list.push(t);
+    }
+
+    for t in thread_list {
+        if let Ok((id, primes)) = t.join() {
+            println!("Thread {}", id);
+            println!("Primes found: {}", primes.len());
+            
+            for (ix, (prime, timestamp)) in primes.iter().enumerate() {
+                println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, timestamp);
+            }
+            println!();
+        }
+    }
 }
 
 

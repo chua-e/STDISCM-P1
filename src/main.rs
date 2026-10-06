@@ -27,7 +27,7 @@ fn main() {
         1 => variant_1(n_threads, n_range),
         2 => variant_2(n_threads, n_range),
         3 => variant_3(n_threads, n_range),
-        4 => variant_4(),
+        4 => variant_4(n_threads, n_range),
         _ => println!("Variant does not exist")
     }
 }
