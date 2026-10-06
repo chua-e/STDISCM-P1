@@ -1,5 +1,6 @@
 use std::thread;
-use std::sync::mpsc;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{mpsc, Arc};
 use crate::compute::{PrimeTime, find_prime, is_prime};
 use chrono::{DateTime, Utc};
 
@@ -30,20 +31,33 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
     for (id, prime, timestamp) in rx {
         println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
     }
-
-    //fix
 }
 
 // print immediately, linear search
 pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
-    // let mut thread_list = Vec::new();
+    let (start, end) = (n_range[0], n_range[1]);
+    let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
+    let next = Arc::new(AtomicU64::new(start));
 
-    for i in 1.. n_thread {
+    for thread_id in 1..n_thread {
+        let tx = tx.clone();
+        let next = Arc::clone(&next);
 
+        thread::spawn(move || loop {
+            let n = next.fetch_add(1, Ordering::Relaxed);
+            if n > end { break; } 
+
+            if is_prime(n) {
+                thread::sleep(std::time::Duration::from_millis(10));
+                tx.send((thread_id.try_into().unwrap(), n, Utc::now())).unwrap();
+            }
+        });
     }
     
-    for i in n_range {
+    drop(tx);
 
+    for (id, prime, timestamp) in rx {
+        println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
     }
 }
 
