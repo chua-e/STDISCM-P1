@@ -1,6 +1,6 @@
 use std::thread;
 use std::sync::mpsc;
-use crate::compute::find_prime;
+use crate::compute::{find_prime, is_prime};
 
 // print immediately, straight division
 pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
@@ -28,11 +28,21 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
         }
         println!();
     }
+
+    //fix
 }
 
 // print immediately, linear search
-pub fn variant_2() {
+pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
+    // let mut thread_list = Vec::new();
 
+    for i in 1.. n_thread {
+
+    }
+    
+    for i in n_range {
+
+    }
 }
 
 // wait to print, straight division
