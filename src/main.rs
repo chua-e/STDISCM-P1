@@ -1,5 +1,6 @@
 use std::io::BufRead;
 use std::{io, println};
+use std::io::{Write};
 use std::fs::File;
 use std::path::Path;
 use STDISCM_P1::threads::{variant_1, variant_2, variant_3, variant_4};
@@ -8,23 +9,25 @@ fn main() {
     let filename = "config.txt";
     let (n_threads, n_range) = read_file(filename);
 
-    let mut input = String::new(); 
-
     println!("Choose the corresponding number for each variant:");
-    println!("1 - Print immediately + Straight division");
-    println!("2 - Print immediately + Linear search");
-    println!("3 - Wait until all threads finish before print + Straight division");
-    println!("4 - Wait until all threads finish before print + Linear search");
+    println!("1 - Print immediately + Straight division (A1 B1)");
+    println!("2 - Print immediately + Linear search (A2 B1)");
+    println!("3 - Wait until all threads finish before print + Straight division (A1 B2)");
+    println!("4 - Wait until all threads finish before print + Linear search (A2 B2)");
 
-    // print!("Input: ");
+    println!();
+    print!("Input: ");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new(); 
     io::stdin().read_line(&mut input).expect("Input scheme variant needed");
     let input = input.trim().parse().expect("Not integer");
 
     match input {
         1 => variant_1(n_threads, n_range),
-        2 => println!("two"),
+        2 => variant_2(n_threads, n_range),
         3 => variant_3(n_threads, n_range),
-        4 => println!("four"),
+        4 => variant_4(),
         _ => println!("Variant does not exist")
     }
 }
