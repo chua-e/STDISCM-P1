@@ -4,9 +4,14 @@ use std::sync::{mpsc, Arc};
 use crate::compute::{PrimeTime, find_prime, is_prime};
 use chrono::{DateTime, Utc};
 
-// print immediately, straight division
 /**
- * Each thread gets a range to handle prime finding
+ * > A1B1
+ * Each thread gets a an allocated range from function 'allocate_ranges()'
+ * and each thread gets the start and end of an allocated range to find
+ * all the prime numbers in each, once a prime is found the thread prints 
+ * the thread number, prime number, and timestamp immediately
+ * 
+ * 
  */
 pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
     let range_list = allocate_ranges(n_thread, n_range);
@@ -34,6 +39,11 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
 }
 
 // print immediately, linear search
+/**
+ * > A2B1
+ * Each thread is tasked with finding a prime for one number, each
+ * thread is allocated a number within the defined config range 
+ */
 pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
     let (start, end) = (n_range[0], n_range[1]);
     let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
