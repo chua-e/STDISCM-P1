@@ -2,6 +2,9 @@ use chrono::{DateTime, Utc};
 
 pub type PrimeTime = Vec<(u64, DateTime<Utc>)>;
 
+/**
+ * Checks if a given number is a prime number
+ */
 pub fn is_prime(n: u64) -> bool {
     if n <= 1 { return false; } 
     if n <= 3 { return true; }
@@ -15,4 +18,12 @@ pub fn is_prime(n: u64) -> bool {
         i += 6;
     }
     true
+}
+
+/**
+ * Checks if a number is divisible with all the numbers
+ * in the provided range
+ */
+pub fn has_divisor (n: u64, start: u64, end: u64) -> bool {
+    (start..=end).any(|d| n % d == 0)
 }

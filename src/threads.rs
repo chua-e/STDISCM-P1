@@ -1,7 +1,7 @@
 use std::thread;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{mpsc, Arc};
-use crate::compute::{PrimeTime, is_prime};
+use crate::compute::{PrimeTime, is_prime, has_divisor};
 use chrono::{DateTime, Utc};
 
 /**
@@ -179,4 +179,28 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
     }
 
     return ranges;
+}
+
+fn linear_search (n_thread: u64, start: u64, end: u64) {
+    let (res_tx, res_rx) = mpsc::channel::<(u64, bool)>();
+    let mut job_txs= Vec::new();
+    let mut handles = Vec::new();
+
+    for id in 1..=n_thread {
+        let (job_tx, job_rx) =mpsc::channel::<(u64, u64, u64)>();
+        let res_tx = res_tx.clone();
+
+        handles.push(thread::spawn(move || {
+            for (n, low, high) in job_rx{
+                res_tx.send((id, has_divisor(n, low, high))).unwrap();
+            }
+        }));
+        job_txs.push(job_tx);
+    }
+
+    drop(res_tx);
+
+    for n in start..=end {
+        
+    }
 }

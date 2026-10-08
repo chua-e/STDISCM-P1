@@ -7,7 +7,8 @@ use STDISCM_P1::threads::{variant_1, variant_2, variant_3, variant_4};
 
 fn main() {
     let filename = "config.txt";
-    let (n_threads, n_range) = read_file(filename);
+    // let result: Result<(u64, Vec<u64>), &str> = read_file(filename);
+    let (n_threads, n_range) = read_file(filename).unwrap();
 
     println!("Choose the corresponding number for each variant:");
     println!("1 - Print immediately + Straight division (A1 B1)");
@@ -36,7 +37,7 @@ fn main() {
  * Reads the config file in the format where x is number of threads and
  * y is the range of numbers for prime search
  */
-fn read_file(filename: &str) -> (u64, Vec<u64>) {
+fn read_file(filename: &str) -> Result<(u64, Vec<u64>), &'static str> {
     let mut x: u64 = 0;
     let mut y: Vec<u64> = Vec::new();
 
@@ -45,7 +46,7 @@ fn read_file(filename: &str) -> (u64, Vec<u64>) {
         Ok(file) => file,
         Err(e) => {
             eprintln!("Error opening file: {}", e);
-            return (0, vec![]);
+            return Ok((0, vec![]));
         }
     };
 
@@ -68,6 +69,9 @@ fn read_file(filename: &str) -> (u64, Vec<u64>) {
                     let mut range_parts = second_token.split('-');
                     if let (Some(n1_str), Some(n2_str)) = (range_parts.next(), range_parts.next()) {
                         if let (Ok(n1), Ok(n2)) = (n1_str.parse::<u64>(), n2_str.parse::<u64>()) {
+                            if n1 > n2 {
+                                return Err("The starting number should be lesser than the end number.");
+                            }
                             y.push(n1);
                             y.push(n2);
                         }
@@ -80,5 +84,5 @@ fn read_file(filename: &str) -> (u64, Vec<u64>) {
 
     println!("Number of threads: {}\nTotal number range: ({}, {})\n", x, y[0], y[1]);
 
-    return (x, y);
+    return Ok((x, y));
 }
