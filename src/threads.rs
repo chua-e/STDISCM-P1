@@ -1,7 +1,7 @@
 use std::thread;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{mpsc, Arc};
-use crate::compute::{PrimeTime, find_prime, is_prime};
+use crate::compute::{PrimeTime, is_prime};
 use chrono::{DateTime, Utc};
 
 /**
@@ -79,17 +79,24 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
     for (i, (start, end)) in range_list.into_iter().enumerate() {
         let thread_id = i + 1;
         let t = thread::spawn(move || {
-           let primes = find_prime(&start, &end);
-            (thread_id, start, end, primes)
+        //    let primes = find_prime(&start, &end);
+        //     (thread_id, start, end, primes)
+            let mut primes: PrimeTime = Vec::new();
+
+            for n in start..=end {
+                if is_prime(n) {
+                    primes.push((n, Utc::now()));
+                }
+            }
+            (thread_id, primes)
         });
 
         thread_list.push(t);
     }
     
     for t in thread_list {
-        if let Ok((id, start, end, primes)) = t.join() {
+        if let Ok((id, primes)) = t.join() {
             println!("Thread {}", id);
-            println!("Number range: ({}, {})", start, end);
             
             for (ix, (prime, _)) in primes.iter().enumerate() {
                 println!("Prime {}: {}", ix + 1, prime);
