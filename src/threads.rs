@@ -2,6 +2,7 @@ use std::thread;
 use std::sync::{mpsc};
 use crate::compute::{PrimeTime, is_prime, has_divisor};
 use chrono::{DateTime, Utc};
+use std::time::Instant;
 
 /**
  * > A1B1
@@ -10,7 +11,7 @@ use chrono::{DateTime, Utc};
  * all the prime numbers in each, once a prime is found the thread prints 
  * the thread number, prime number, and timestamp immediately
  * 
- * 
+ * Using mpsc, messages are able to be passed between threads 
  */
 pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
     let range_list = allocate_ranges(n_thread, n_range);
@@ -94,7 +95,9 @@ pub fn variant_4(n_thread: u64, n_range: Vec<u64>) {
 /**
  * Helper function that allocates numbers from the config range
  * into equal segments per thread, only returns the first and
- * last number of the segmented range
+ * last number of the segmented range. If a range is not equally 
+ * divisible by n_threads, the last thread more than likely gets
+ * less numbers in its range then the other threads
  */
 fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
     if n_range.len() < 2 || n_thread == 0 {
@@ -103,29 +106,26 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
 
     let range_start = n_range[0];
     let range_end = n_range[1];
-    let increment = (range_end - range_start)/n_thread;
+
+    let total = range_end - range_start + 1;
+    let n = n_thread.min(total);
+    let base = total / n;
+    let extra = total % n; 
 
     let mut ranges: Vec<(u64, u64)> = Vec::new();
 
     let mut current = range_start;
-    for i in 0..n_thread {
-        let temp_start = current;
-
-        let temp_end = if i == n_thread-1 {
-            range_end
-        } else {
-            current + increment
-        };
-
-        ranges.push((temp_start, temp_end));
-        current = temp_end +1;
+    for i in 0..n {
+        let increment = base + if i < extra { 1 } else { 0 };
+        ranges.push((current, current + increment - 1));
+        current += increment;
     }
 
     return ranges;
 }
 
 /**
- * 
+ * This is another helper function but for linear search. It takes
  */
 fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(u64)) {
     let (res_tx, res_rx) = mpsc::channel::<(u64, bool)>();
@@ -157,28 +157,25 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         let limit = n.isqrt();
-        let total = limit-1;
-        let chunk = total.div_ceil(n_thread);
+        let slices = allocate_ranges(n_thread, vec![2, limit]);
 
-        let mut sent =0;
-        for (k, job_tx) in job_txs.iter().enumerate() {
-            let lo = 2 + k as u64 * chunk;
-            if lo > limit { break; }
-            let hi = (lo + chunk - 1).min(limit);
-            job_tx.send((n, lo, hi)).unwrap();
-            sent += 1;
+        for (job_tx, (low, high)) in job_txs.iter().zip(slices.iter()) {
+            job_tx.send((n, *low, *high)).unwrap();
         }
 
         let mut composite = false;
-        for _ in 0..sent {
+        for _ in 0..slices.len() {
             let (_id, found) = res_rx.recv().unwrap();
             composite |= found;
         }
-        if !composite { on_prime(n); }
+
+        if !composite {
+            on_prime(n);
+        }
     }
 
     drop(job_txs);
-    for h in handles { h.join().unwrap(); 
-
+    for h in handles { 
+        h.join().unwrap(); 
     }
 }
