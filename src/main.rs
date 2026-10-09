@@ -24,6 +24,8 @@ fn main() {
     io::stdin().read_line(&mut input).expect("Input scheme variant needed");
     let input = input.trim().parse().expect("Not integer");
 
+    println!();
+
     match input {
         1 => variant_1(n_threads, n_range),
         2 => variant_2(n_threads, n_range),

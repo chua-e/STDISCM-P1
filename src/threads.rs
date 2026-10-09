@@ -45,30 +45,34 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
  * thread is allocated a number within the defined config range 
  */
 pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
-    let (start, end) = (n_range[0], n_range[1]);
-    let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
-    let next = Arc::new(AtomicU64::new(start));
+    // let (start, end) = (n_range[0], n_range[1]);
+    // let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
+    // let next = Arc::new(AtomicU64::new(start));
 
-    for thread_id in 1..=n_thread {
-        let tx = tx.clone();
-        let next = Arc::clone(&next);
+    // for thread_id in 1..=n_thread {
+    //     let tx = tx.clone();
+    //     let next = Arc::clone(&next);
 
-        thread::spawn(move || loop {
-            let n = next.fetch_add(1, Ordering::Relaxed);
-            if n > end { break; } 
+    //     thread::spawn(move || loop {
+    //         let n = next.fetch_add(1, Ordering::Relaxed);
+    //         if n > end { break; } 
 
-            if is_prime(n) {
-                thread::sleep(std::time::Duration::from_millis(10));
-                tx.send((thread_id.try_into().unwrap(), n, Utc::now())).unwrap();
-            }
-        });
-    }
+    //         if is_prime(n) {
+    //             thread::sleep(std::time::Duration::from_millis(10));
+    //             tx.send((thread_id.try_into().unwrap(), n, Utc::now())).unwrap();
+    //         }
+    //     });
+    // }
     
-    drop(tx);
+    // drop(tx);
 
-    for (id, prime, timestamp) in rx {
-        println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
-    }
+    // for (id, prime, timestamp) in rx {
+    //     println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
+    // }
+
+    linear_search(n_thread, n_range[0], n_range[1], |n| {
+        println!("Prime {}, Timestamp: {:?}", n, Utc::now());
+    });
 }
 
 // wait to print, straight division
@@ -108,45 +112,12 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
 
 // wait to print, linear search
 pub fn variant_4(n_thread: u64, n_range: Vec<u64>) {
-    let (start, end) = (n_range[0], n_range[1]);
-    let next = Arc::new(AtomicU64::new(start));
-
-    let mut thread_list = Vec::new();
-
-    for thread_id in 1..=n_thread {
-        let next = Arc::clone(&next);
-
-        let t = thread::spawn (move || {
-            let mut primes: PrimeTime = Vec::new();
-
-            loop {
-                let n = next.fetch_add(1, Ordering::Relaxed);
-                if n > end { break; }
-
-                if is_prime(n) {
-                    primes.push((n, Utc::now()));
-                }
-            }
-
-            (thread_id, primes)
-        });
-
-        thread_list.push(t);
-    }
-
-    for t in thread_list {
-        if let Ok((id, primes)) = t.join() {
-            println!("Thread {}", id);
-            println!("Primes found: {}", primes.len());
-            
-            for (ix, (prime, timestamp)) in primes.iter().enumerate() {
-                println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, timestamp);
-            }
-            println!();
-        }
+    let mut primes: PrimeTime = Vec::new();
+    linear_search(n_thread, n_range[0], n_range[1], |n| primes.push((n, Utc::now())));
+    for (ix, (prime, ts)) in primes.iter().enumerate() {
+        println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, ts);
     }
 }
-
 
 /**
  * Helper function that allocates numbers from the config range
@@ -181,7 +152,10 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
     return ranges;
 }
 
-fn linear_search (n_thread: u64, start: u64, end: u64) {
+/**
+ * 
+ */
+fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(u64)) {
     let (res_tx, res_rx) = mpsc::channel::<(u64, bool)>();
     let mut job_txs= Vec::new();
     let mut handles = Vec::new();
@@ -201,6 +175,38 @@ fn linear_search (n_thread: u64, start: u64, end: u64) {
     drop(res_tx);
 
     for n in start..=end {
-        
+        if n <= 1 || (n > 2 && n % 2 == 0) {
+            continue;
+        }
+
+        if n <= 3 {
+            on_prime(n);
+            continue;
+        }
+
+        let limit = n.isqrt();
+        let total = limit-1;
+        let chunk = total.div_ceil(n_thread);
+
+        let mut sent =0;
+        for (k, job_tx) in job_txs.iter().enumerate() {
+            let lo = 2 + k as u64 * chunk;
+            if lo > limit { break; }
+            let hi = (lo + chunk - 1).min(limit);
+            job_tx.send((n, lo, hi)).unwrap();
+            sent += 1;
+        }
+
+        let mut composite = false;
+        for _ in 0..sent {
+            let (_id, found) = res_rx.recv().unwrap();
+            composite |= found;
+        }
+        if !composite { on_prime(n); }
+    }
+
+    drop(job_txs);
+    for h in handles { h.join().unwrap(); 
+
     }
 }
