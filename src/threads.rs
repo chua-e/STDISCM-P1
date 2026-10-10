@@ -2,7 +2,6 @@ use std::thread;
 use std::sync::{mpsc};
 use crate::compute::{PrimeTime, is_prime, has_divisor};
 use chrono::{DateTime, Utc};
-use std::time::Instant;
 
 /**
  * > A1B1
@@ -13,7 +12,7 @@ use std::time::Instant;
  * 
  * Using mpsc, messages are able to be passed between threads 
  */
-pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
+pub fn variant_1(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let range_list = allocate_ranges(n_thread, n_range);
     let (tx, rx) = mpsc::channel::<(usize, u64, DateTime<Utc>)>();
 
@@ -33,8 +32,10 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
     
     drop(tx);
 
-    for (id, prime, timestamp) in rx {
-        println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
+    if will_print {
+        for (id, prime, timestamp) in rx {
+            println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
+        }
     }
 }
 
@@ -44,14 +45,16 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>) {
  * Each thread is tasked with finding a prime for one number, each
  * thread is allocated a number within the defined config range 
  */
-pub fn variant_2(n_thread: u64, n_range: Vec<u64>) {
+pub fn variant_2(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     linear_search(n_thread, n_range[0], n_range[1], |n| {
-        println!("Prime {}, Timestamp: {:?}", n, Utc::now());
+        if will_print {
+            println!("Prime {}, Timestamp: {:?}", n, Utc::now());
+        }
     });
 }
 
 // wait to print, straight division
-pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
+pub fn variant_3 (n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let range_list = allocate_ranges(n_thread, n_range);
     let mut thread_list = Vec::new();
 
@@ -73,22 +76,26 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>) {
     
     for t in thread_list {
         if let Ok((id, primes)) = t.join() {
-            println!("Thread {}", id);
+            if will_print {
+                println!("Thread {}", id);
             
-            for (ix, (prime, _)) in primes.iter().enumerate() {
-                println!("Prime {}: {}", ix + 1, prime);
+                for (ix, (prime, _)) in primes.iter().enumerate() {
+                    println!("Prime {}: {}", ix + 1, prime);
+                }
+                println!();
             }
-            println!();
         }
     }
 }
 
 // wait to print, linear search
-pub fn variant_4(n_thread: u64, n_range: Vec<u64>) {
+pub fn variant_4(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let mut primes: PrimeTime = Vec::new();
     linear_search(n_thread, n_range[0], n_range[1], |n| primes.push((n, Utc::now())));
     for (ix, (prime, ts)) in primes.iter().enumerate() {
-        println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, ts);
+        if will_print {
+            println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, ts);
+        }
     }
 }
 
