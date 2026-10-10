@@ -8,4 +8,6 @@ There are four variants of this program:
 3. Wait until all threads are done before printing the result of a straight division of search range 
 4. Wait until all threads are done before printing the result of a linear search
 
+To run the program just input `cargo run main` in the program directory to run the program.
+
 🍠🍠
