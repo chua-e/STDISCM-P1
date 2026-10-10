@@ -71,32 +71,31 @@ fn main() {
             },
 
             "5" => {
-                let mut times = Vec::new();
 
                 let start_one = Instant::now();
                 variant_1(n_threads, n_range.clone(), false);
                 let duration_one = start_one.elapsed();
-                times.push((1, duration_one));
+                println!("Time elapsed for variant 1: {:?}", duration_one);
 
                 let start_two = Instant::now();
                 variant_2(n_threads, n_range.clone(), false);
                 let duration_two = start_two.elapsed();
-                times.push((2, duration_two));
+                println!("Time elapsed for variant 2: {:?}", duration_two);
 
                 let start_three = Instant::now();
                 variant_3(n_threads, n_range.clone(), false);
                 let duration_three = start_three.elapsed();
-                times.push((3, duration_three));
+                println!("Time elapsed for variant 3: {:?}", duration_three);
 
                 let start_four = Instant::now();
                 variant_4(n_threads, n_range.clone(), false);
                 let duration_four = start_four.elapsed();
-                times.push((4, duration_four));
+                println!("Time elapsed for variant 4: {:?}", duration_four);
                 
 
-                for (variant, t) in times {
-                    println!("Time elapsed for variant {}: {:?}", variant, t);
-                }
+                // for (variant, t) in times {
+                //     println!("Time elapsed for variant {}: {:?}", variant, t);
+                // }
             },
             
             "exit" => break,
@@ -135,6 +134,9 @@ fn read_file(filename: &str) -> Result<(u64, Vec<u64>), &'static str> {
 
                 if first_token == "x" {
                     if let Ok(threads) = second_token.parse::<u64>() {
+                        if threads == 0 {
+                            return Err("Number of threads must be greater than 0");
+                        }
                         x = threads;
                     }
                 } else if first_token == "y" {

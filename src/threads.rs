@@ -176,7 +176,7 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
 
         if n <= 3 {
             thread::sleep(std::time::Duration::from_millis(10));
-            on_prime(n, 0);
+            on_prime(n, 1);
             continue;
         }
 
@@ -188,7 +188,7 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         let mut composite = false;
-        let mut last_id = 0;
+        let mut last_id = 1;
         for _ in 0..slices.len() {
             let (id, found) = res_rx.recv().unwrap();
             composite |= found;
