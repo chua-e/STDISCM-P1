@@ -16,87 +16,92 @@ fn main() {
     println!("3 - Wait until all threads finish before print + Straight division (A1 B2)");
     println!("4 - Wait until all threads finish before print + Linear search (A2 B2)");
     println!("5 - Time comparison of all variants");
+    println!("Type 'exit' to quit");
 
-    println!();
-    print!("Input: ");
-    io::stdout().flush().unwrap();
+    loop {
+        println!();
+        print!("Input: ");
+        io::stdout().flush().unwrap();
 
-    let mut input = String::new(); 
-    io::stdin().read_line(&mut input).expect("Input scheme variant needed");
-    let input = input.trim().parse().expect("Not integer");
+        let mut input = String::new(); 
+        io::stdin().read_line(&mut input).expect("Failed to read input");
+        let input = input.trim();
 
-    println!();
+        println!();
 
-    match input {
-        1 => {
-            let start = Instant::now();
-            variant_1(n_threads, n_range, true);
+        match input {
+            "1" => {
+                let start = Instant::now();
+                variant_1(n_threads, n_range.clone(), true);
 
-            let duration = start.elapsed();
+                let duration = start.elapsed();
 
-            println!();
-            println!("Time elapsed: {:?}", duration);
-        },
+                println!();
+                println!("Time elapsed: {:?}", duration);
+            },
 
-        2 => {
-            let start = Instant::now();
-            variant_2(n_threads, n_range, true);
+            "2" => {
+                let start = Instant::now();
+                variant_2(n_threads, n_range.clone(), true);
 
-            let duration = start.elapsed();
+                let duration = start.elapsed();
 
-            println!();
-            println!("Time elapsed: {:?}", duration);
-        },
+                println!();
+                println!("Time elapsed: {:?}", duration);
+            },
 
-        3 => {
-            let start = Instant::now();
-            variant_3(n_threads, n_range, true);
+            "3" => {
+                let start = Instant::now();
+                variant_3(n_threads, n_range.clone(), true);
 
-            let duration = start.elapsed();
+                let duration = start.elapsed();
 
-            println!();
-            println!("Time elapsed: {:?}", duration);
-        },
-        
-        4 => {
-            let start = Instant::now();
-            variant_4(n_threads, n_range, true);
-
-            let duration = start.elapsed();
-
-            println!();
-            println!("Time elapsed: {:?}", duration);
-        },
-
-        5 => {
-            let mut times = Vec::new();
-
-            let start_one = Instant::now();
-            variant_1(n_threads, n_range.clone(), false);
-            let duration_one = start_one.elapsed();
-            times.push(duration_one);
-
-            let start_two = Instant::now();
-            variant_2(n_threads, n_range.clone(), false);
-            let duration_two = start_two.elapsed();
-            times.push(duration_two);
-
-            let start_three = Instant::now();
-            variant_3(n_threads, n_range.clone(), false);
-            let duration_three = start_three.elapsed();
-            times.push(duration_three);
-
-            let start_four = Instant::now();
-            variant_4(n_threads, n_range.clone(), false);
-            let duration_four = start_four.elapsed();
-            times.push(duration_four);
+                println!();
+                println!("Time elapsed: {:?}", duration);
+            },
             
+            "4" => {
+                let start = Instant::now();
+                variant_4(n_threads, n_range.clone(), true);
 
-            for t in times {
-                println!("Time elapsed: {:?}", t);
-            }
-        },
-        _ => println!("Variant does not exist")
+                let duration = start.elapsed();
+
+                println!();
+                println!("Time elapsed: {:?}", duration);
+            },
+
+            "5" => {
+                let mut times = Vec::new();
+
+                let start_one = Instant::now();
+                variant_1(n_threads, n_range.clone(), false);
+                let duration_one = start_one.elapsed();
+                times.push(duration_one);
+
+                let start_two = Instant::now();
+                variant_2(n_threads, n_range.clone(), false);
+                let duration_two = start_two.elapsed();
+                times.push(duration_two);
+
+                let start_three = Instant::now();
+                variant_3(n_threads, n_range.clone(), false);
+                let duration_three = start_three.elapsed();
+                times.push(duration_three);
+
+                let start_four = Instant::now();
+                variant_4(n_threads, n_range.clone(), false);
+                let duration_four = start_four.elapsed();
+                times.push(duration_four);
+                
+
+                for t in times {
+                    println!("Time elapsed: {:?}", t);
+                }
+            },
+            
+            "exit" => break,
+            _ => println!("Variant does not exist")
+        }
     }
 }
 

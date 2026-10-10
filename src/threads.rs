@@ -43,9 +43,9 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
  * printed immediately for this variant
  */
 pub fn variant_2(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
-    linear_search(n_thread, n_range[0], n_range[1], |n| {
+    linear_search(n_thread, n_range[0], n_range[1], |n, id| {
         if will_print {
-            println!("Prime {}, Timestamp: {:?}", n, Utc::now());
+            println!("Thread {}: Prime {}, Timestamp: {:?}", id, n, Utc::now());
         }
     });
 }
@@ -98,11 +98,11 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>, will_print: bool) {
  * pushed into a primes vector and printed once all threads finish
  */
 pub fn variant_4(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
-    let mut primes: PrimeTime = Vec::new();
-    linear_search(n_thread, n_range[0], n_range[1], |n| primes.push((n, Utc::now())));
-    for (ix, (prime, ts)) in primes.iter().enumerate() {
+    let mut primes: Vec<(u64, u64, DateTime<Utc>)> = Vec::new();
+    linear_search(n_thread, n_range[0], n_range[1], |n, id| primes.push((id, n, Utc::now())));
+    for (ix, (id, prime, _)) in primes.iter().enumerate() {
         if will_print {
-            println!("Prime {}: {}, Timestamp: {:?}", ix + 1, prime, ts);
+            println!("Thread {}: Prime {}: {}", id, ix + 1, prime);
         }
     }
 }
@@ -149,7 +149,7 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
  * The on_prime parameter is used as a closure to determine what to do with a certain
  * value if it is prime depending on the variant.
  */
-fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(u64)) {
+fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(u64, u64)) {
     let (res_tx, res_rx) = mpsc::channel::<(u64, bool)>();
     let mut job_txs= Vec::new();
     let mut handles = Vec::new();
@@ -174,7 +174,7 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         if n <= 3 {
-            on_prime(n);
+            on_prime(n, 0);
             continue;
         }
 
@@ -186,13 +186,15 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         let mut composite = false;
+        let mut last_id = 0;
         for _ in 0..slices.len() {
-            let (_id, found) = res_rx.recv().unwrap();
+            let (id, found) = res_rx.recv().unwrap();
             composite |= found;
+            last_id = id; 
         }
 
         if !composite {
-            on_prime(n);
+            on_prime(n, last_id);
         }
     }
 
