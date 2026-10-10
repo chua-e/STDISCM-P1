@@ -30,8 +30,8 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     
     drop(tx);
 
-    if will_print {
-        for (id, prime, timestamp) in rx {
+    for (id, prime, timestamp) in rx {
+        if will_print {
             println!("Thread {}: Prime {}, Timestamp: {:?}", id, prime, timestamp);
         }
     }
@@ -69,6 +69,7 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>, will_print: bool) {
 
             for n in start..=end {
                 if is_prime(n) {
+                    thread::sleep(std::time::Duration::from_millis(10));
                     primes.push((n, Utc::now()));
                 }
             }
@@ -174,6 +175,7 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         if n <= 3 {
+            thread::sleep(std::time::Duration::from_millis(10));
             on_prime(n, 0);
             continue;
         }
@@ -194,6 +196,7 @@ fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(
         }
 
         if !composite {
+            thread::sleep(std::time::Duration::from_millis(10));
             on_prime(n, last_id);
         }
     }

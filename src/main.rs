@@ -76,26 +76,26 @@ fn main() {
                 let start_one = Instant::now();
                 variant_1(n_threads, n_range.clone(), false);
                 let duration_one = start_one.elapsed();
-                times.push(duration_one);
+                times.push((1, duration_one));
 
                 let start_two = Instant::now();
                 variant_2(n_threads, n_range.clone(), false);
                 let duration_two = start_two.elapsed();
-                times.push(duration_two);
+                times.push((2, duration_two));
 
                 let start_three = Instant::now();
                 variant_3(n_threads, n_range.clone(), false);
                 let duration_three = start_three.elapsed();
-                times.push(duration_three);
+                times.push((3, duration_three));
 
                 let start_four = Instant::now();
                 variant_4(n_threads, n_range.clone(), false);
                 let duration_four = start_four.elapsed();
-                times.push(duration_four);
+                times.push((4, duration_four));
                 
 
-                for t in times {
-                    println!("Time elapsed: {:?}", t);
+                for (variant, t) in times {
+                    println!("Time elapsed for variant {}: {:?}", variant, t);
                 }
             },
             
@@ -154,6 +154,7 @@ fn read_file(filename: &str) -> Result<(u64, Vec<u64>), &'static str> {
         }
     }
 
+    println!();
     println!("Number of threads: {}\nTotal number range: ({}, {})\n", x, y[0], y[1]);
 
     return Ok((x, y));
