@@ -8,7 +8,6 @@ use STDISCM_P1::threads::{variant_1, variant_2, variant_3, variant_4};
 
 fn main() {
     let filename = "config.txt";
-    // let result: Result<(u64, Vec<u64>), &str> = read_file(filename);
     let (n_threads, n_range) = read_file(filename).unwrap();
 
     println!("Choose the corresponding number for each variant:");

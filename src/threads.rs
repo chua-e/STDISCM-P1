@@ -4,13 +4,11 @@ use crate::compute::{PrimeTime, is_prime, has_divisor};
 use chrono::{DateTime, Utc};
 
 /**
- * > A1B1
+ * > A1B1: Print immediately + Straight division
  * Each thread gets a an allocated range from function 'allocate_ranges()'
  * and each thread gets the start and end of an allocated range to find
  * all the prime numbers in each, once a prime is found the thread prints 
  * the thread number, prime number, and timestamp immediately
- * 
- * Using mpsc, messages are able to be passed between threads 
  */
 pub fn variant_1(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let range_list = allocate_ranges(n_thread, n_range);
@@ -39,11 +37,10 @@ pub fn variant_1(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     }
 }
 
-// print immediately, linear search
 /**
- * > A2B1
- * Each thread is tasked with finding a prime for one number, each
- * thread is allocated a number within the defined config range 
+ * > A2B1: Print immediately + Linear search
+ * Using the linear_search() function, when a prime n is found, it is 
+ * printed immediately for this variant
  */
 pub fn variant_2(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     linear_search(n_thread, n_range[0], n_range[1], |n| {
@@ -53,7 +50,14 @@ pub fn variant_2(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     });
 }
 
-// wait to print, straight division
+/**
+ * > A1B2: Wait to print + Straight division
+ * Each thread gets a an allocated range from function 'allocate_ranges()'
+ * and each thread gets the start and end of an allocated range to find
+ * all the prime numbers in each, once a prime is found it is stored 
+ * in a primes vector and is then printed per thread after all threads
+ * finish working
+ */
 pub fn variant_3 (n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let range_list = allocate_ranges(n_thread, n_range);
     let mut thread_list = Vec::new();
@@ -88,7 +92,11 @@ pub fn variant_3 (n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     }
 }
 
-// wait to print, linear search
+/**
+ * > A2B2: Wait to print + Linear search
+ * Using the linear_search() function, when a prime n is found, it is 
+ * pushed into a primes vector and printed once all threads finish
+ */
 pub fn variant_4(n_thread: u64, n_range: Vec<u64>, will_print: bool) {
     let mut primes: PrimeTime = Vec::new();
     linear_search(n_thread, n_range[0], n_range[1], |n| primes.push((n, Utc::now())));
@@ -132,7 +140,14 @@ fn allocate_ranges (n_thread: u64, n_range: Vec<u64>) -> Vec<(u64, u64)> {
 }
 
 /**
- * This is another helper function but for linear search. It takes
+ * This is another helper function but for linear search. It runs from the
+ * start to the end of the given range in the config and splits the divisibility
+ * testing for each thread defined in n_thread. It splits the divisor widow among
+ * threads using the allocate_ranges() function and each thread checks its own
+ * allocated range for a divisor.
+ * 
+ * The on_prime parameter is used as a closure to determine what to do with a certain
+ * value if it is prime depending on the variant.
  */
 fn linear_search (n_thread: u64, start: u64, end: u64, mut on_prime: impl FnMut(u64)) {
     let (res_tx, res_rx) = mpsc::channel::<(u64, bool)>();
